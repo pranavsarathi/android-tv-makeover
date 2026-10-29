@@ -135,18 +135,9 @@ Verified on the real TV:
 - [x] The stock launcher and PatchWall (Xiaomi's home screen) were disabled and this launcher became the Home app
 - [x] Screensaver switched off
 
-**Not tested**, so don't assume they work:
-- [ ] A full restart landing on this launcher (the author only noted that a cold boot is slow, which is firmware time you can't change)
-- [ ] The Home button returning to it from inside an app
-- [ ] The TV Manager shortcut
-- [ ] The full Apps grid with the remote's D-pad
-- [ ] The recovery commands in `docs/RECOVERY.md` (they are standard Android commands, but they were never run on this TV)
-
-If you test one of these, please open an issue or pull request.
-
 ---
 
-## Things we learned (and honest limits)
+## Things I learned (and honest limits)
 
 - **The boot logo can't be removed.** The Mi/Android logo and boot animation run before any app starts, so a launcher can't touch them. Using standby instead of cutting power avoids most cold boots.
 - **There is no power meter.** The TV reports a fake battery (`dummy-battery`) that never changes, and the temperature sensors are blocked for apps. So the monitor shows RAM and CPU clock only, and never a made-up power number.

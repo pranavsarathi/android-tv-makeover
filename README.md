@@ -13,11 +13,11 @@ Nothing else. No ads on the home screen.
 
 ## Before and after
 
-| Before: stock home screen | After: this launcher |
-|---|---|
-| ![Before: promo banner, ad rows and recommendations](<img width="1600" height="1200" alt="WhatsApp Image 2026-10-29 at 10 42 01 AM" src="https://github.com/user-attachments/assets/86b5d260-24ba-407f-ab08-b0a15edf7b49" />
-) | ![After: cat wallpaper, 4 apps, monitor card](<img width="1600" height="900" alt="FInal_look" src="https://github.com/user-attachments/assets/4fb331d3-2d02-4be1-aefa-5385e9525bfe" />
-) |
+## Before vs. After
+
+| Before: Stock Home Screen | After: Custom Launcher |
+|:---:|:---:|
+| <img src="https://github.com/user-attachments/assets/86b5d260-24ba-407f-ab08-b0a15edf7b49" width="400" alt="Stock home screen"> | <img src="https://github.com/user-attachments/assets/4fb331d3-2d02-4be1-aefa-5385e9525bfe" width="400" alt="Custom launcher"> |
 
 *The "before" photo was taken of the TV screen. The "after" image is a screenshot from the TV.*
 

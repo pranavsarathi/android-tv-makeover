@@ -15,7 +15,9 @@ Nothing else. No ads on the home screen.
 
 | Before: stock home screen | After: this launcher |
 |---|---|
-| ![Before: promo banner, ad rows and recommendations](docs/images/before-stock-home.jpg) | ![After: cat wallpaper, 4 apps, monitor card](docs/images/after-cat-launcher.png) |
+| ![Before: promo banner, ad rows and recommendations](<img width="1600" height="1200" alt="WhatsApp Image 2026-10-29 at 10 42 01 AM" src="https://github.com/user-attachments/assets/86b5d260-24ba-407f-ab08-b0a15edf7b49" />
+) | ![After: cat wallpaper, 4 apps, monitor card](<img width="1600" height="900" alt="FInal_look" src="https://github.com/user-attachments/assets/4fb331d3-2d02-4be1-aefa-5385e9525bfe" />
+) |
 
 *The "before" photo was taken of the TV screen. The "after" image is a screenshot from the TV.*
 

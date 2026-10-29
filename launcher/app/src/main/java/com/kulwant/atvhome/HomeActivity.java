@@ -2,12 +2,15 @@ package com.kulwant.atvhome;
 
 import android.animation.ValueAnimator;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.RectF;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.drawable.GradientDrawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -60,7 +63,8 @@ public class HomeActivity extends Activity implements Wallpapers.Listener {
     private int W, H, side, bandTop, gridTop, rowH;
 
     private FrameLayout root, content;
-    private TextView greeting, clock, date, dockTitle, wifiText;
+    private TextView ramSummary, powerSummary, dockTitle, wifiText;
+    private RamHistogramView ramHistogram;
     private LinearLayout pillRow;
     // follower counters under the pills: YouTube, Instagram, Facebook
     private static final String[] SOCIAL_KEYS = {"yt", "ig", "fb"};
@@ -141,6 +145,7 @@ public class HomeActivity extends Activity implements Wallpapers.Listener {
         updateWifi();
         if (inputs.isOpen()) inputs.close();
         scheduleMinute();
+        scheduleMemoryMonitor();
         scheduleWallpaper();
         if (hasSocial && System.currentTimeMillis() - prefs.getLong("counts_at", 0) > SUBS_REFRESH_MS) {
             refreshSubs.run();
@@ -153,6 +158,7 @@ public class HomeActivity extends Activity implements Wallpapers.Listener {
     protected void onPause() {
         // nothing ticks (and no wallpaper is decoded) while an app is in front
         main.removeCallbacks(minuteTick);
+        main.removeCallbacks(memoryTick);
         main.removeCallbacks(nextWallpaper);
         main.removeCallbacks(refreshSubs);
         super.onPause();
@@ -311,22 +317,9 @@ public class HomeActivity extends Activity implements Wallpapers.Listener {
         highlight.setAlpha(0f);
         content.addView(highlight, new FrameLayout.LayoutParams(-1, -1));
 
-        // greeting, clock, date
-        LinearLayout tl = new LinearLayout(this);
-        tl.setOrientation(LinearLayout.VERTICAL);
-        greeting = Ui.text(this, 400, 16, 0x99FFFFFF);
-        clock = Ui.text(this, 150, 78, 0xFFFFFFFF);
-        clock.setLetterSpacing(-0.02f);
-        date = Ui.text(this, 300, 17, 0x99FFFFFF);
-        tl.addView(greeting);
-        LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(-2, -2);
-        clp.topMargin = dp(4);
-        clp.leftMargin = -dp(3);
-        tl.addView(clock, clp);
-        LinearLayout.LayoutParams dlp = new LinearLayout.LayoutParams(-2, -2);
-        dlp.topMargin = dp(6);
-        tl.addView(date, dlp);
-        content.addView(tl, at(W / 2, -2, side, dp(34)));
+        // Hacker-style system monitor: RAM and CPU meters plus audio spectrum (see MonitorView).
+        MonitorView monitor = new MonitorView(this);
+        content.addView(monitor, at(dp(300), dp(92), side, dp(34)));
 
         // pills: Inputs, Wi-Fi, Settings
         pillRow = new LinearLayout(this);
@@ -449,15 +442,106 @@ public class HomeActivity extends Activity implements Wallpapers.Listener {
 
     // ---------------------------------------------------------------- status
 
+    // Keep existing timer and status callbacks safe after removing the clock.
     private void updateClock() {
-        Calendar now = Calendar.getInstance();
-        int h = now.get(Calendar.HOUR_OF_DAY);
-        String part = h >= 5 && h < 12 ? "Good morning" : h >= 12 && h < 17 ? "Good afternoon" : "Good evening";
-        String name = getString(R.string.greeting_name).trim();
-        greeting.setText(name.isEmpty() ? part : part + ", " + name);
-        boolean h24 = DateFormat.is24HourFormat(this);
-        clock.setText(DateFormat.format(h24 ? "H:mm" : "h:mm", now));
-        date.setText(DateFormat.format("EEEE, d MMMM", now));
+        updateMemoryMonitor();
+    }
+
+    private String formatMemory(long bytes) {
+        long mb = bytes / (1024L * 1024L);
+        if (mb >= 1024) {
+            return String.format(java.util.Locale.US,
+                    "%.2f GB", mb / 1024.0);
+        }
+        return mb + " MB";
+    }
+
+    private void updateMemoryMonitor() {
+        if (ramSummary == null || ramHistogram == null) return;
+
+        ActivityManager am =
+                (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        if (am == null) return;
+
+        ActivityManager.MemoryInfo info =
+                new ActivityManager.MemoryInfo();
+        am.getMemoryInfo(info);
+
+        long total = info.totalMem;
+        long available = info.availMem;
+        long used = Math.max(0L, total - available);
+
+        if (total <= 0) {
+            ramSummary.setText("RAM  Unavailable");
+            return;
+        }
+
+        int percent = (int) Math.min(100L, used * 100L / total);
+        ramSummary.setText(
+                "RAM  " + formatMemory(used) + " / "
+                + formatMemory(total) + "  (" + percent + "%)");
+
+        ramHistogram.addSample(percent);
+    }
+
+    private final Runnable memoryTick = new Runnable() {
+        @Override
+        public void run() {
+            updateMemoryMonitor();
+            main.postDelayed(this, 5000L);
+        }
+    };
+
+    private void scheduleMemoryMonitor() {
+        main.removeCallbacks(memoryTick);
+        main.post(memoryTick);
+    }
+
+    private final class RamHistogramView extends View {
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final List<Integer> samples = new ArrayList<>();
+
+        RamHistogramView(Context context) {
+            super(context);
+            setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+        }
+
+        void addSample(int percent) {
+            samples.add(Math.max(0, Math.min(100, percent)));
+            if (samples.size() > 24) {
+                samples.remove(0);
+            }
+            invalidate();
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            super.onDraw(canvas);
+
+            float width = getWidth();
+            float height = getHeight();
+            if (width <= 0 || height <= 0 || samples.isEmpty()) return;
+
+            float gap = dp(2);
+            float barWidth = Math.max(
+                    dp(2), (width - gap * (samples.size() - 1))
+                    / samples.size());
+
+            paint.setColor(0x5548B8D0);
+            canvas.drawRect(0, height - dp(1), width, height, paint);
+
+            for (int i = 0; i < samples.size(); i++) {
+                float fraction = samples.get(i) / 100.0f;
+                float barHeight = Math.max(dp(2), fraction * height);
+                float left = i * (barWidth + gap);
+                float right = Math.min(width, left + barWidth);
+
+                paint.setColor(0xFF48B8D0);
+                canvas.drawRoundRect(
+                        left, height - barHeight, right, height,
+                        dp(2), dp(2), paint);
+            }
+        }
     }
 
     // ---------------------------------------------------------------- wallpapers

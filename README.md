@@ -61,7 +61,7 @@ The Android SDK comes from Android Studio or the command-line tools: https://dev
 
 ### 0. Get the code
 ```bash
-git clone https://github.com/<YOUR-NAME>/android-tv-makeover.git
+git clone https://github.com/pranavsarathi/android-tv-makeover.git
 cd android-tv-makeover/launcher
 ```
 

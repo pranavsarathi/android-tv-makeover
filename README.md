@@ -11,10 +11,6 @@ Nothing else. No ads on the home screen.
 > **Tested on:** Xiaomi / Mi TV model `MiTv-AXSo0`, Android 9, 1280x720 screen, about 1 GB RAM.
 > Other Android TVs *might* work, but nobody has tested them. See [What is tested](#what-is-tested-and-what-is-not).
 
-## Before and after
-
-## Before vs. After
-
 | Before: Stock Home Screen | After: Custom Launcher |
 |:---:|:---:|
 | <img src="https://github.com/user-attachments/assets/86b5d260-24ba-407f-ab08-b0a15edf7b49" width="400" alt="Stock home screen"> | <img src="https://github.com/user-attachments/assets/4fb331d3-2d02-4be1-aefa-5385e9525bfe" width="400" alt="Custom launcher"> |
